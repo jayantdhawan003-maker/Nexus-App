@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus — Real-Time Chat</title>
+  <meta name="description" content="Premium real-time chat with presence, typing indicators, and message search" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+  <!-- Username Modal -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-emblem">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="20" stroke="var(--cyan)" stroke-width="1.2"/>
+          <path d="M22 6 L36 14 L36 30 L22 38 L8 30 L8 14 Z" fill="none" stroke="var(--cyan)" stroke-width="0.8" stroke-dasharray="2 2"/>
+          <path d="M22 12 L30 17 L30 27 L22 32 L14 27 L14 17 Z" fill="var(--cyan-dim)" stroke="var(--cyan)" stroke-width="0.6"/>
+          <circle cx="22" cy="22" r="3.5" fill="var(--cyan)"/>
+          <circle cx="22" cy="22" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <h1 class="modal-title">Nexus</h1>
+      <p class="modal-tagline">Real-time conversations, beautifully</p>
+      <div class="modal-divider"></div>
+      <label class="modal-label">Choose your name</label>
+      <div class="modal-input-row">
+        <input id="username-input" type="text" placeholder="your name…" maxlength="24" autocomplete="off" spellcheck="false"/>
+        <button id="join-btn">Join →</button>
+      </div>
+      <p id="modal-error" class="modal-error"></p>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div id="app" class="app hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 44 44" fill="none">
+            <path d="M22 12 L30 17 L30 27 L22 32 L14 27 L14 17 Z" fill="var(--cyan-dim)" stroke="var(--cyan)" stroke-width="1.2"/>
+            <circle cx="22" cy="22" r="3" fill="var(--cyan)"/>
+          </svg>
+          <span class="brand-name">Nexus</span>
+        </div>
+        <button id="sidebar-close" class="icon-btn sidebar-close-btn" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-block">
+        <span class="block-label">Channels</span>
+        <ul id="rooms-list" class="rooms-list"></ul>
+      </div>
+
+      <div class="sidebar-block sidebar-block--flex">
+        <span class="block-label">Online · <span id="online-count">0</span></span>
+        <ul id="users-list" class="users-list"></ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="footer-me">
+          <div class="status-dot online" id="my-status-dot"></div>
+          <span id="my-username-display">—</span>
+        </div>
+        <div class="footer-status-btns">
+          <button class="s-btn active" data-status="online" title="Online">●</button>
+          <button class="s-btn" data-status="away" title="Away">◐</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat -->
+    <main class="main">
+      <header class="chat-header">
+        <button id="hamburger" class="icon-btn hamburger-btn" aria-label="Menu">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="header-channel">
+          <span class="header-hash">#</span>
+          <span id="header-room-name">general</span>
+        </div>
+        <div class="header-right">
+          <div class="search-wrap" id="search-container">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M9 9l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <input id="search-input" type="text" placeholder="Search messages…" autocomplete="off"/>
+            <button id="search-clear" class="search-clear hidden">✕</button>
+          </div>
+          <button id="notif-btn" class="icon-btn notif-btn" aria-label="Notifications">
+            <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+              <path d="M8.5 2a4 4 0 00-4 4v2.5L3 10.5h11L12.5 8.5V6a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+              <path d="M7 14a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            <span id="notif-badge" class="notif-badge hidden">0</span>
+          </button>
+        </div>
+      </header>
+
+      <div id="search-results-bar" class="search-results-bar hidden">
+        <span id="search-results-count">0 results</span>
+        <button id="search-exit" class="search-exit-btn">Clear search</button>
+      </div>
+
+      <div id="messages" class="messages-feed" role="log" aria-live="polite">
+        <div class="messages-spacer"></div>
+      </div>
+
+      <div id="typing-indicator" class="typing-bar hidden" aria-live="polite">
+        <div class="typing-flames">
+          <span></span><span></span><span></span>
+        </div>
+        <span id="typing-text"></span>
+      </div>
+
+      <div class="input-area">
+        <div class="input-wrap">
+          <textarea id="message-input" placeholder="Message #general…" rows="1" maxlength="2000" autocomplete="off" spellcheck="true"></textarea>
+        </div>
+        <button id="send-btn" class="send-btn" aria-label="Send">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M14 2L7 9M14 2l-4.5 12L7 9 2 6.5 14 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
